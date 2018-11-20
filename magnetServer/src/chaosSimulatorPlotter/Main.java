@@ -19,12 +19,10 @@ public class Main{
 	private static ArrayList<ConnectionHandler> connections = new ArrayList<ConnectionHandler>();
 	public static final int LISTENING_PORT = 42022;
 	public static final String ipAddress = "10.2.22.159";
-	public static ChaosPlotterDistributor chaosPlotDistri;
 		
 	@SuppressWarnings("resource")
 	public static void main(String[] args) throws IOException, InterruptedException {
 		ServerSocket listener;  // Listens for incoming connections.
-        Socket connection;
         listener = new ServerSocket(LISTENING_PORT, 5, InetAddress.getByName(ipAddress));
         System.out.println("Listening on port " + LISTENING_PORT);
 		
@@ -40,32 +38,13 @@ public class Main{
         
 		System.out.println("Starting Generation...");
 		
-		//WORLD GENERATION
-		int width = 800;
-		int height = 800;
-		int maxTicks = 100000;
-		int posArraySize = 1000;
-		
-		World world = new World(posArraySize);
-		
-		//set world vars
-		world.setMaxForce(1000);
-		world.setHomeX(400);
-		world.setHomeY(400);
-		world.setDefaultCoef(10);
-		world.setHomeCoef(10);
-		world.setFricition(.95);
-		world.setMaxStopDist(15);
-		world.setHomeX(400);
-		world.setHomeY(400);
-		world.setMaxTicks(maxTicks);
-		
 		//start timer
 		final long startTime = System.currentTimeMillis();
 	
+		//divide batches
 		ArrayList<double[][]> batches = pointBatchSplitter();
 		
-		//
+		//main generation loop
 		boolean running = true;
 		while (running == true) {
 			

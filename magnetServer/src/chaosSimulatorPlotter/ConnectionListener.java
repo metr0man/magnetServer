@@ -23,7 +23,6 @@ public class ConnectionListener extends Thread {
 			}
             ConnectionHandler handler = new ConnectionHandler(connection);
             handler.start();
-            System.out.println("new connection");
 		}
 	}
 }
