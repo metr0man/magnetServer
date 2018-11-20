@@ -31,12 +31,9 @@ public class Main{
         connectionListener.start();        
         
         System.out.println("waiting for connection");
-        while (connections.size() == 0) {
-        	Thread.sleep(100);
-        }
         
         
-		System.out.println("Starting Generation...");
+        
 		
 		//start timer
 		final long startTime = System.currentTimeMillis();
@@ -45,9 +42,41 @@ public class Main{
 		ArrayList<double[][]> batches = pointBatchSplitter();
 		
 		//main generation loop
+		ArrayList<double[][]> finishedBatches = new ArrayList<double[][]>();;
+		//ArrayList<double[][]> currentBatches = new ArrayList<double[][]>();;
+		ArrayList<double[][]> batchOutputs = new ArrayList<double[][]>();
+		int numBatches = batches.size();
 		boolean running = true;
 		while (running == true) {
+			if (batchOutputs.size() >= numBatches) {
+				running = false;
+				break;
+			}
 			
+			for (int i = 0; i < connections.size(); i++) {
+				if (connections.get(i).getGenerating() == false) { //check if generating
+					if (connections.get(i).getGenFinished() == true) {
+						batchOutputs.add(connections.get(i).getOutputArray()); //add output
+						connections.get(i).setGenFinished(false); //reset genFinished
+						
+						//check if new points
+						if (batches.size() > 0) {
+							//batches available
+							connections.get(i).setCurrentPoints(batches.get(0));
+							batches.remove(0);
+							connections.get(i).setNewPoints(true);
+						} else {
+							//no more batches
+							connections.get(i).setActive(false);
+						}
+						
+					}
+				}
+				
+			}
+			
+			//sleep thread to save resources
+			Thread.sleep(100);
 		}
 		
 		

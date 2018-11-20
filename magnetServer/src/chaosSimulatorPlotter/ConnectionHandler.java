@@ -77,12 +77,13 @@ public class ConnectionHandler extends Thread {
     			generating = true;
     			genFinished = false;
     			//start generation
+    			System.out.println("sending new batch to "+clientAddress);
     			try {
 					startGeneration(currentPoints, world);
 				} catch (IOException e) {
 					System.out.println("send error");
 				}
-    			
+    			System.out.println("output received from "+clientAddress);
     			generating = false;
     			genFinished = true;
     			
@@ -102,25 +103,10 @@ public class ConnectionHandler extends Thread {
 		} catch (IOException e) {
 			System.out.println("client disconnect error");
 		}
-    	
-    	
-    	// (code copied from the original DateServer program)
-//        String clientAddress = client.getInetAddress().toString();
-//        try {
-//            System.out.println("Connection from " + clientAddress );
-//            BufferedInputStream incoming = new BufferedInputStream(client.getInputStream());
-//            PrintWriter outgoing;   // Stream for sending data.
-//            outgoing = new PrintWriter( client.getOutputStream() );
-//            OutputStream outStream = client.getOutputStream();
-//            outStream.write(arg0);
-//            outgoing.flush();  // Make sure the data is actually sent!
-//            client.close();
-//        }
-//        catch (Exception e){
-//            System.out.println("Error on connection with: " 
-//                    + clientAddress + ": " + e);
-//        }
+    	//end of thread
     }
+    
+    
     public void startGeneration(double[][] points, World world) throws IOException {
     	ObjectOutputStream objOut = new ObjectOutputStream(this.outStream);
     	ObjectInputStream objIn = new ObjectInputStream(this.inStream);
