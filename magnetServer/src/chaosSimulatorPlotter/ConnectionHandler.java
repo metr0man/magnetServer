@@ -52,7 +52,7 @@ public class ConnectionHandler extends Thread {
 		world.setHomeY(400);
 		world.setDefaultCoef(10);
 		world.setHomeCoef(10);
-		world.setFricition(.95);
+		world.setFriction(.95);
 		world.setMaxStopDist(15);
 		world.setHomeX(400);
 		world.setHomeY(400);
@@ -69,7 +69,7 @@ public class ConnectionHandler extends Thread {
     	catch(Exception e){
     		System.out.println("error in connection handler thread");
     	}
-    	
+
     	//generation loop
     	while (active) {
     		if (newPoints) {
@@ -81,7 +81,8 @@ public class ConnectionHandler extends Thread {
     			try {
 					startGeneration(currentPoints, world);
 				} catch (IOException e) {
-					System.out.println("send error");
+					//failure code here
+					System.out.println("generation error");
 				}
     			System.out.println("output received from "+clientAddress);
     			generating = false;
@@ -114,7 +115,6 @@ public class ConnectionHandler extends Thread {
     	objOut.writeObject(world);
     	
     	try {
-    		System.out.println(client.isConnected());
 			this.outputArray = (double[][]) objIn.readObject();
 			objOut.writeInt(1);
 		} catch (ClassNotFoundException e) {

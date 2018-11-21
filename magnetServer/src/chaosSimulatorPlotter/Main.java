@@ -17,8 +17,8 @@ import simulation.World;
 
 public class Main{
 	private static ArrayList<ConnectionHandler> connections = new ArrayList<ConnectionHandler>();
-	public static final int LISTENING_PORT = 42022;
-	public static final String ipAddress = "10.2.22.159";
+	public static final int LISTENING_PORT = 42028;
+	public static final String ipAddress = "localhost";
 		
 	@SuppressWarnings("resource")
 	public static void main(String[] args) throws IOException, InterruptedException {
@@ -47,68 +47,60 @@ public class Main{
 		ArrayList<double[][]> batchOutputs = new ArrayList<double[][]>();
 		int numBatches = batches.size();
 		boolean running = true;
-		while (running == true) {
-			if (batchOutputs.size() >= numBatches) {
-				running = false;
-				break;
-			}
-			
+		while (running == true) {			
+			//loop through connections 
 			for (int i = 0; i < connections.size(); i++) {
 				if (connections.get(i).getGenerating() == false) { //check if generating
 					if (connections.get(i).getGenFinished() == true) {
 						batchOutputs.add(connections.get(i).getOutputArray()); //add output
 						connections.get(i).setGenFinished(false); //reset genFinished
-						
-						//check if new points
-						if (batches.size() > 0) {
-							//batches available
-							connections.get(i).setCurrentPoints(batches.get(0));
-							batches.remove(0);
-							connections.get(i).setNewPoints(true);
-						} else {
-							//no more batches
-							connections.get(i).setActive(false);
-						}
-						
+					}
+					//check if new points
+					if (batches.size() > 0) {
+						//batches available
+						connections.get(i).setCurrentPoints(batches.get(0));
+						batches.remove(0);
+						connections.get(i).setNewPoints(true);
+					} else {
+						//no more batches
+						connections.get(i).setActive(false);
 					}
 				}
-				
+			}
+			
+			if (batchOutputs.size() >= numBatches) {
+				running = false;
+				break;
 			}
 			
 			//sleep thread to save resources
 			Thread.sleep(100);
 		}
 		
+		//deactivate all connection threads
+		connectionListener.closeListener();
+		for (int i = 0; i < connections.size(); i++) {
+			connections.get(i).setActive(false);
+		}
 		
-		
-		
-		
-		
-		System.out.println("done with generation");
-
 		//stop timers
 		final long endTime = System.currentTimeMillis();
 		double execTime = (endTime - startTime)/(double)1000;
+		System.out.println("done with generation");
 		System.out.println("program took: "+execTime+" s");
 
-		
-		
-		
-		//writer   OLD
-		/*System.out.println("writing to file");
+		//writer  
+		System.out.println("writing to file");
 		PrintWriter writer = new PrintWriter("output.txt","UTF-8");
-		for(int i = 0; i < output.length; i++) {
-			writer.println("["+output[i][0]+", "+output[i][1]+", "+output[i][2]+", "+output[i][3]+"]");
+		for (int j = 0; j < batchOutputs.size(); j++) {
+			for(int i = 0; i < batchOutputs.get(j).length; i++) {
+				double[][] output = batchOutputs.get(j);
+				writer.println("["+output[i][0]+", "+output[i][1]+", "+output[i][2]+", "+output[i][3]+"]");
+			}
 		}
 		writer.close();
-		*/
 		
-		//logWriter.println("program took: "+execTime+" s, "+timePerPoint+" s per point");
 		
-		//close file
-		//writer.close();
-		//logWriter.close();
-		//System.out.println("data in output.txt");
 	}
 	
 	public static void addConnection(ConnectionHandler connection) {
