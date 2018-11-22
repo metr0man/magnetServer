@@ -2,6 +2,8 @@ package chaosSimulatorPlotter;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -10,6 +12,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Date;
 
 import simulation.World;
@@ -22,6 +25,9 @@ public class ConnectionHandler extends Thread {
     private Socket client; // The connection to the client.
     private InputStream inStream;
     private OutputStream outStream;
+    private ObjectOutputStream objOut;
+    private ObjectInputStream objIn; 
+    
     
     //booleans for opperation
     private boolean genFinished = false;
@@ -37,34 +43,38 @@ public class ConnectionHandler extends Thread {
         this.genFinished = false;
     }
     public void run() {
-    	//setup world THIS SHOULD BE DONE SOMEWHERE ELSE
-    	//WORLD GENERATION
-		int width = 800;
-		int height = 800;
-		int maxTicks = 100000;
-		int posArraySize = 1000;
-		
-		World world = new World(posArraySize);
-		
-		//set world vars
-		world.setMaxForce(1000);
-		world.setHomeX(400);
-		world.setHomeY(400);
-		world.setDefaultCoef(10);
-		world.setHomeCoef(10);
-		world.setFriction(.95);
-		world.setMaxStopDist(15);
-		world.setHomeX(400);
-		world.setHomeY(400);
-		world.setMaxTicks(maxTicks);
+    	try {
+			client.setKeepAlive(true);
+		} catch (SocketException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
     			
 		//setup connection
     	String clientAddress = client.getInetAddress().toString();
     	try {
     		 System.out.println("Connection from " + clientAddress );
-             Main.addConnection(this);
-             this.inStream = client.getInputStream();
-             this.outStream = client.getOutputStream();
+    		 this.inStream = client.getInputStream();
+    		 this.outStream = client.getOutputStream();
+    		 objOut = new ObjectOutputStream(this.outStream);
+    		 objIn = new ObjectInputStream(this.inStream);
+    		 String status = (String) objIn.readObject();
+    		 System.out.println(status);
+    		 if(status.equalsIgnoreCase("client")) {
+    			 Main.addConnection(this);
+    			 objOut.writeObject("confirmed as client");
+    			 System.out.println("Confirmed as client");
+    		 }
+    		 else if(status.equalsIgnoreCase("controller")) {
+    			 System.out.println("controller confirmation sending");
+    			 objOut.writeObject("confirmed as controller");
+    			 System.out.println("Confirmed as controller");
+    			 ControllerConnectionHandler controller = new ControllerConnectionHandler(client, objIn, objOut);
+    			 controller.start();
+    			 while(controller.isAlive()) {
+    				 Thread.sleep(1000);
+    			 }
+    		 }
     	}
     	catch(Exception e){
     		System.out.println("error in connection handler thread");
@@ -79,7 +89,7 @@ public class ConnectionHandler extends Thread {
     			//start generation
     			System.out.println("sending new batch to "+clientAddress);
     			try {
-					startGeneration(currentPoints, world);
+					startGeneration(currentPoints);
 				} catch (IOException e) {
 					//failure code here
 					System.out.println("generation error");
@@ -108,15 +118,13 @@ public class ConnectionHandler extends Thread {
     }
     
     
-    public void startGeneration(double[][] points, World world) throws IOException {
-    	ObjectOutputStream objOut = new ObjectOutputStream(this.outStream);
-    	ObjectInputStream objIn = new ObjectInputStream(this.inStream);
+    public void startGeneration(double[][] points) throws IOException {
+    	World world = Main.getCurrentWorld();
     	objOut.writeObject(points);
     	objOut.writeObject(world);
     	
     	try {
 			this.outputArray = (double[][]) objIn.readObject();
-			objOut.writeInt(1);
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
