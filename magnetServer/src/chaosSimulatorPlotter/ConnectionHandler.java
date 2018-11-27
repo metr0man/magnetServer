@@ -1,16 +1,11 @@
 package chaosSimulatorPlotter;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.Date;
 
 import simulation.World;
 
@@ -23,11 +18,14 @@ public class ConnectionHandler extends Thread {
     private InputStream inStream;
     private OutputStream outStream;
     
-    //booleans for opperation
+    //booleans for operation
     private boolean genFinished = false;
     private boolean active = true;
     private boolean newPoints = false;
     private boolean generating = false;
+    private boolean disconnect = false;
+    private boolean threadDead = false;
+    
     //for communication with main loop
     private double[][] currentPoints;
     private double[][] outputArray;
@@ -39,8 +37,8 @@ public class ConnectionHandler extends Thread {
     public void run() {
     	//setup world THIS SHOULD BE DONE SOMEWHERE ELSE
     	//WORLD GENERATION
-		int width = 800;
-		int height = 800;
+		//int width = 800;
+		//int height = 800;
 		int maxTicks = 100000;
 		int posArraySize = 1000;
 		
@@ -57,6 +55,7 @@ public class ConnectionHandler extends Thread {
 		world.setHomeX(400);
 		world.setHomeY(400);
 		world.setMaxTicks(maxTicks);
+		world.setDefaultMagnets(Main.getDefaultMagnets());
     			
 		//setup connection
     	String clientAddress = client.getInetAddress().toString();
@@ -72,39 +71,48 @@ public class ConnectionHandler extends Thread {
 
     	//generation loop
     	while (active) {
-    		if (newPoints) {
-    			newPoints = false;
-    			generating = true;
-    			genFinished = false;
-    			//start generation
-    			System.out.println("sending new batch to "+clientAddress);
-    			try {
-					startGeneration(currentPoints, world);
-				} catch (IOException e) {
-					//failure code here
-					System.out.println("generation error");
-				}
-    			System.out.println("output received from "+clientAddress);
-    			generating = false;
-    			genFinished = true;
-    			
+    		if (!disconnect) {
+	    		if (newPoints) {
+	    			newPoints = false;
+	    			generating = true;
+	    			genFinished = false;
+	    			//start generation
+	    			System.out.println("sending new batch to "+clientAddress);
+	    			try {
+						startGeneration(currentPoints, world);
+						System.out.println("output received from "+clientAddress);
+		    			generating = false;
+		    			genFinished = true;
+	    			
+	    			} catch (IOException e) {
+						//failure code here
+						System.out.println("generation error at "+clientAddress);
+						System.err.println(e);
+						disconnect = true;
+						continue;
+						
+					}
+	    			
+	    			
+	    		}
     		}
-    		
     		//wait to save resources
     		try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
-				System.out.println("thread sleep error");
 			}
     	}
     	
     	//close connection
     	try {
 			client.close();
+			System.out.println("disconnected "+clientAddress);
 		} catch (IOException e) {
 			System.out.println("client disconnect error");
 		}
     	//end of thread
+    	threadDead = true;
+    	
     }
     
     
@@ -129,6 +137,8 @@ public class ConnectionHandler extends Thread {
 	public boolean getActive() {return active;}
 	public boolean getNewPoints() {return newPoints;}
 	public boolean getGenerating() {return generating;}
+	public boolean getDisconnect() {return disconnect;}
+	public boolean getThreadDead() {return threadDead;}
 	public double[][] getOutputArray() {return outputArray;}
 	public double[][] getCurrentPoints() {return currentPoints;}
 	

@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<root>
+	<ip>localhost</ip>
+	<port>42030</port>
+	<numBatches>4</numBatches>
+	<minX>0</minX>
+	<maxX>400</maxX>
+	<minY>0</minY>
+	<maxY>400</maxY>
+	<resX>20</resX>
+	<resY>20</resY>
+</root>
