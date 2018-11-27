@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<root>
+	<magnet id="1">
+		<xPos>350</xPos>
+		<yPos>350</yPos>
+		<coef>10</coef>
+	</magnet>
+
+	<magnet id="2">
+		<xPos>450</xPos>
+		<yPos>350</yPos>
+		<coef>10</coef>
+	</magnet>
+
+	<magnet id="3">
+		<xPos>450</xPos>
+		<yPos>450</yPos>
+		<coef>10</coef>
+	</magnet>
+
+	<magnet id="4">
+		<xPos>350</xPos>
+		<yPos>450</yPos>
+		<coef>10</coef>
+	</magnet>
+
+	<magnet id="5">
+		<xPos>350</xPos>
+		<yPos>400</yPos>
+		<coef>-10</coef>
+	</magnet>
+
+	<magnet id="6">
+		<xPos>450</xPos>
+		<yPos>400</yPos>
+		<coef>-10</coef>
+	</magnet>
+
+	<magnet id="7">
+		<xPos>400</xPos>
+		<yPos>350</yPos>
+		<coef>-10</coef>
+	</magnet>
+
+	<magnet id="8">
+		<xPos>400</xPos>
+		<yPos>450</yPos>
+		<coef>-10</coef>
+	</magnet>
+</root>
